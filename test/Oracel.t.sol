@@ -15,16 +15,18 @@ contract AccuWeatherDataTest is Test {
         mockOracle = new MockChainlinkOracle();
         
         accuWeatherData = new AccuWeatherData(address(mockOracle), "jobId", 0.1 ether);
+        console.log("made it");
     }
 
     function testPrecipitationDataFetch() public {
         // Trigger the request
-        accuWeatherData.requestPrecipitationData();
+        
 
         // Simulate the oracle response
         bytes32 requestId = 0x0; // Simplified for example. In reality, capture the requestId from the emitted event.
         uint256 mockedPrecipitation = 5; // Example precipitation value in mm
-        mockOracle.fulfillPrecipitationRequest(requestId, mockedPrecipitation, address(accuWeatherData));
+        mockOracle.fulfillPrecipitationRequest(requestId, address(accuWeatherData));
+        accuWeatherData.fulfill(requestId, mockedPrecipitation);
 
         // Verify the precipitation was updated correctly
         assertEq(accuWeatherData.precipitation(), mockedPrecipitation);
