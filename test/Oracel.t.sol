@@ -13,6 +13,7 @@ contract AccuWeatherDataTest is Test {
 
     function setUp() public {
         mockOracle = new MockChainlinkOracle();
+        
         accuWeatherData = new AccuWeatherData(address(mockOracle), "jobId", 0.1 ether);
     }
 
