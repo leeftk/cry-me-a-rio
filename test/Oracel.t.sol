@@ -10,16 +10,30 @@ contract AccuWeatherDataTest is Test {
     // Vm vm = Vm(HEVM_ADDRESS);
     AccuWeatherData accuWeatherData;
     MockChainlinkOracle mockOracle;
+     IERC20 link = IERC20(0x514910771AF9Ca656af840dff83E8264EcF986CA); // LINK token contract on Ethereum mainnet
+    address linkWhale = 0xbc10f2e862ed4502144c7d632a3459f49dfcdb5e;
+
+
 
     function setUp() public {
         mockOracle = new MockChainlinkOracle();
+        
+        accuWeatherData = new AccuWeatherData();
+             // Impersonate the LINK whale
+        vm.startPrank(linkWhale);
 
-        accuWeatherData = new AccuWeatherData(address(mockOracle), "jobId", 0.1 ether);
+        // Ensure the whale has enough ETH to pay for gas (optional, if necessary)
+        vm.deal(linkWhale, 1 ether);
+
+        // Transfer LINK to your contract
+        require(link.transfer(myContract, amount), "LINK transfer failed");
+
+        // Stop impersonating the LINK whale
+        vm.stopPrank();
         console.log("made it");
     }
 
     function testPrecipitationDataFetch() public {
-        // Trigger the request
 
         // Simulate the oracle response
         bytes32 requestId = 0x0; // Simplified for example. In reality, capture the requestId from the emitted event.

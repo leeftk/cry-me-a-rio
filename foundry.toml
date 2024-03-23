@@ -6,6 +6,11 @@ libs = ["lib"]
 
 [profile.dependencies]
 
+[profile.test]
+
+rpcUrl = "https://mainnet.infura.io/v3/7214c971517a4856a1ea3c32a5ba8bd0"
+forkBlockNumber = "latest" # Or specify a specific block number
+
 
 chainlink = { git = "https://github.com/smartcontractkit/chainlink", rev = "v0.8", subdirs = ["evm-contracts/src/v0.8"] }
 
