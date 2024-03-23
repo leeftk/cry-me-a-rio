@@ -35,6 +35,26 @@ contract BettingContract is VRFConsumerBase {
         fee = _fee;
         strikeTimestamp = _strikeTimestamp; 
     }
+    
+    function priceOfBet(uint256 _numYes, uint256 _numNo) public view returns (uint256 costOfYes, uint256 costOfNo) {
+
+        uint256 totalAvgNewNumYes = totalNumYes + (_numYes / 2);
+        uint256 totalAvgNewNumNo = totalNumNo + (_numNo / 2);
+
+        // If there's more yes than no, make the yes's more expensive.
+        if (totalAvgNewNumYes > totalAvgNewNumNo) {
+            costOfYes = BASE_ENTRY_FEE * (totalNumYes - totalNumNo);
+            costOfNo = BASE_ENTRY_FEE;
+        // If there's more no than yes, make the no's more expensive.
+        } else if (totalAvgNewNumNo > totalAvgNewNumYes) {
+            costOfNo = BASE_ENTRY_FEE * (totalNumYes - totalNumNo);
+            costOfYes = BASE_ENTRY_FEE;
+        // Make them the same.
+        } else {
+            costOfNo = BASE_ENTRY_FEE;
+            costOfYes = BASE_ENTRY_FEE;
+        }
+    }
 
     /**
      * Function to place a bet.
@@ -42,8 +62,14 @@ contract BettingContract is VRFConsumerBase {
     function placeBet(uint256 _numYes, uint256 _numNo) external payable {
         require(block.timestamp <= strikeTimestamp, "Betting period has expired.");
 
-        //... insert pricing scheme here to replace.
-        uint256 entryFee = (_numYes + _numNo) * BASE_ENTRY_FEE;
+        // Basic validation to ensure at least one of _numYes or _numNo is non-zero
+        require(_numYes > 0 || _numNo > 0, "Must place a bet on at least one outcome.");
+
+        // Get the cost of the bets.
+        (uint256 costOfYes, uint256 costOfNo) = priceOfBet(_numYes, _numNo);
+
+        // Calculate the entry fee based on the multiplier
+        uint256 entryFee = (_numYes * costOfYes) + (_numNo * costOfNo); 
 
         require(msg.value == entryFee, "Incorrect value sent.");
 
