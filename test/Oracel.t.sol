@@ -2,7 +2,7 @@
 pragma solidity ^0.8.7;
 
 import {Test, console} from "forge-std/Test.sol";
-import "../src/Oracle.sol";
+import "../src/AccuWeatherData.sol";
 import "../src/Mocks/MockChainlinkOracle.sol";
 import "forge-std/Vm.sol";
 
