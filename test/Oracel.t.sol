@@ -1,18 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 
+import {Test, console} from "forge-std/Test.sol";
 import "../src/Oracle.sol";
 import "../src/Mocks/MockChainlinkOracle.sol";
 import "forge-std/Vm.sol";
 
 contract AccuWeatherDataTest is Test {
-    Vm vm = Vm(HEVM_ADDRESS);
-    Oracle accuWeatherData;
+    // Vm vm = Vm(HEVM_ADDRESS);
+    AccuWeatherData accuWeatherData;
     MockChainlinkOracle mockOracle;
 
     function setUp() public {
         mockOracle = new MockChainlinkOracle();
-        accuWeatherData = new Oracle(address(mockOracle), "jobId", 0.1 ether);
+        accuWeatherData = new AccuWeatherData(address(mockOracle), "jobId", 0.1 ether);
     }
 
     function testPrecipitationDataFetch() public {
