@@ -4,13 +4,14 @@ pragma solidity ^0.8.7;
 import {Test, console} from "forge-std/Test.sol";
 import "../src/AccuWeatherData.sol";
 import "../src/Mocks/MockChainlinkOracle.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "forge-std/Vm.sol";
 
-contract AccuWeatherDataTest is Test {
+contract AccuWeatherDataTest is Test, IERC20 {
     // Vm vm = Vm(HEVM_ADDRESS);
     AccuWeatherData accuWeatherData;
     MockChainlinkOracle mockOracle;
-     IERC20 link = IERC20(0x514910771AF9Ca656af840dff83E8264EcF986CA); // LINK token contract on Ethereum mainnet
+    IERC20 link = IERC20(0x514910771AF9Ca656af840dff83E8264EcF986CA); // LINK token contract on Ethereum mainnet
     address linkWhale = 0xbc10f2e862ed4502144c7d632a3459f49dfcdb5e;
 
 
