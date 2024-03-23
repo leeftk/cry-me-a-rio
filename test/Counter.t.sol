@@ -2,10 +2,9 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import { BettingContract } from "../src/Counter.sol";
+import {BettingContract} from "../src/Counter.sol";
 
 contract BettingContractTest is Test {
-    
     BettingContract bettingContract;
     address vrfCoordinatorMock = address(0x123); // Use a mock address for the VRF Coordinator
     address linkTokenMock = address(0x456); // Use a mock address for the LINK token
@@ -13,7 +12,8 @@ contract BettingContractTest is Test {
     uint256 fee = 0.1 * 10 ** 18; // Adjust the fee as necessary
 
     function setUp() public {
-        bettingContract = new BettingContract(vrfCoordinatorMock, linkTokenMock, keyHash, fee, block.timestamp + 1 hours);
+        bettingContract =
+            new BettingContract(vrfCoordinatorMock, linkTokenMock, keyHash, fee, block.timestamp + 1 hours);
     }
 
     function testPlaceBet() public {
@@ -22,7 +22,7 @@ contract BettingContractTest is Test {
         vm.deal(bettor, 1 ether); // Provide the bettor with 1 ETH for betting
 
         vm.startPrank(bettor);
-        bettingContract.placeBet{value: 0.00001 ether}({ _numYes: 1, _numNo: 0 });
+        bettingContract.placeBet{value: 0.00001 ether}({_numYes: 1, _numNo: 0});
         vm.stopPrank();
 
         // Verify the bet was placed
@@ -37,11 +37,9 @@ contract BettingContractTest is Test {
         vm.deal(bettor, 1 ether); // Provide the bettor with 1 ETH for betting
 
         vm.startPrank(bettor);
-        bettingContract.placeBet{value: 0.00001 ether}({ _numYes: 1, _numNo: 0 }); // This should fail
+        bettingContract.placeBet{value: 0.00001 ether}({_numYes: 1, _numNo: 0}); // This should fail
         vm.stopPrank();
     }
 
     // Add more tests here...
-
 }
-

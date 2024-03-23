@@ -13,14 +13,13 @@ contract AccuWeatherDataTest is Test {
 
     function setUp() public {
         mockOracle = new MockChainlinkOracle();
-        
+
         accuWeatherData = new AccuWeatherData(address(mockOracle), "jobId", 0.1 ether);
         console.log("made it");
     }
 
     function testPrecipitationDataFetch() public {
         // Trigger the request
-        
 
         // Simulate the oracle response
         bytes32 requestId = 0x0; // Simplified for example. In reality, capture the requestId from the emitted event.

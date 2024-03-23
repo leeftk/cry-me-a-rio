@@ -21,7 +21,9 @@ contract BettingContract is VRFConsumerBase {
 
     // Events
     event BetPlaced(address indexed voter, uint256 numYes, uint256 numNo);
-    event WinnersPaidOut(uint256 strikeValue, uint256 totalPrize, uint256 totalNumCorrectBid, uint256 payoutPerCorrectBid);
+    event WinnersPaidOut(
+        uint256 strikeValue, uint256 totalPrize, uint256 totalNumCorrectBid, uint256 payoutPerCorrectBid
+    );
 
     /**
      * Constructor
@@ -31,11 +33,10 @@ contract BettingContract is VRFConsumerBase {
     {
         keyHash = _keyHash;
         fee = _fee;
-        strikeTimestamp = _strikeTimestamp; 
+        strikeTimestamp = _strikeTimestamp;
     }
-    
-    function priceOfBet(uint256 _numYes, uint256 _numNo) public view returns (uint256 costOfYes, uint256 costOfNo) {
 
+    function priceOfBet(uint256 _numYes, uint256 _numNo) public view returns (uint256 costOfYes, uint256 costOfNo) {
         uint256 totalAvgNewNumYes = totalNumYes + (_numYes / 2);
         uint256 totalAvgNewNumNo = totalNumNo + (_numNo / 2);
 
@@ -43,11 +44,11 @@ contract BettingContract is VRFConsumerBase {
         if (totalAvgNewNumYes > totalAvgNewNumNo) {
             costOfYes = BASE_ENTRY_FEE * (totalNumYes - totalNumNo);
             costOfNo = BASE_ENTRY_FEE;
-        // If there's more no than yes, make the no's more expensive.
+            // If there's more no than yes, make the no's more expensive.
         } else if (totalAvgNewNumNo > totalAvgNewNumYes) {
             costOfNo = BASE_ENTRY_FEE * (totalNumYes - totalNumNo);
             costOfYes = BASE_ENTRY_FEE;
-        // Make them the same.
+            // Make them the same.
         } else {
             costOfNo = BASE_ENTRY_FEE;
             costOfYes = BASE_ENTRY_FEE;
@@ -67,7 +68,7 @@ contract BettingContract is VRFConsumerBase {
         (uint256 costOfYes, uint256 costOfNo) = priceOfBet(_numYes, _numNo);
 
         // Calculate the entry fee based on the multiplier
-        uint256 entryFee = (_numYes * costOfYes) + (_numNo * costOfNo); 
+        uint256 entryFee = (_numYes * costOfYes) + (_numNo * costOfNo);
 
         require(msg.value == entryFee, "Incorrect value sent.");
 
@@ -102,7 +103,7 @@ contract BettingContract is VRFConsumerBase {
     /**
      * Callback function used by VRF Coordinator
      */
-    function fulfillRandomness(bytes32 /* requestId */, uint256 randomness) internal override {
+    function fulfillRandomness(bytes32, /* requestId */ uint256 randomness) internal override {
         require(strikeValue == 0, "Result already declared.");
         // 1 or 2.
         strikeValue = (randomness % 2) + 1;
