@@ -13,8 +13,6 @@ contract BettingContract is VRFConsumerBase {
     address[] public noVoters;
     uint256 public totalNumYes;
     uint256 public totalNumNo;
-    bool public done;
-
     mapping(address => uint256) public numYesFrom;
     mapping(address => uint256) public numNoFrom;
 
