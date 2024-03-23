@@ -14,8 +14,6 @@ contract AccuWeatherDataTest is Test{
     IERC20 link = IERC20(0x514910771AF9Ca656af840dff83E8264EcF986CA); // LINK token contract on Ethereum mainnet
     address linkWhale = 0xBc10f2E862ED4502144c7d632a3459F49DFCDB5e;
 
-
-
     function setUp() public {
         mockOracle = new MockChainlinkOracle();
         

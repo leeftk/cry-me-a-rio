@@ -3,6 +3,13 @@ pragma solidity ^0.8.0;
 
 import "@chainlink/contracts/v0.8/VRFConsumerBase.sol";
 
+
+struct BetCheckpoint {
+    uint256 timestamp;
+    uint256 totalNumYes;
+    uint256 totalNumNo;
+}
+
 contract BettingContract is VRFConsumerBase {
     uint256 public constant BASE_ENTRY_FEE = 0.00001 ether;
     uint256 public strikeTimestamp;
@@ -11,16 +18,15 @@ contract BettingContract is VRFConsumerBase {
 
     address[] public yesVoters;
     address[] public noVoters;
-    uint256 public totalNumYes;
-    uint256 public totalNumNo;
     mapping(address => uint256) public numYesFrom;
     mapping(address => uint256) public numNoFrom;
 
+    BetCheckpoint[] internal _betCheckpoints;
     bytes32 internal keyHash;
     uint256 internal fee;
 
     // Events
-    event BetPlaced(address indexed voter, uint256 numYes, uint256 numNo);
+    event BetPlaced(address indexed voter, uint256 numYes, uint256 numNo, BetCheckpoint checkpoint);
     event WinnersPaidOut(
         uint256 strikeValue, uint256 totalPrize, uint256 totalNumCorrectBid, uint256 payoutPerCorrectBid
     );
@@ -36,17 +42,22 @@ contract BettingContract is VRFConsumerBase {
         strikeTimestamp = _strikeTimestamp;
     }
 
+    function betCheckpoints() external view returns (BetCheckpoint[] memory) {
+        return _betCheckpoints;
+    }
+
     function priceOfBet(uint256 _numYes, uint256 _numNo) public view returns (uint256 costOfYes, uint256 costOfNo) {
-        uint256 totalAvgNewNumYes = totalNumYes + (_numYes / 2);
-        uint256 totalAvgNewNumNo = totalNumNo + (_numNo / 2);
+        BetCheckpoint memory latestCheckpooint = _betCheckpoints[_betCheckpoints.length - 1];
+        uint256 totalAvgNewNumYes = latestCheckpooint.totalNumYes + (_numYes / 2);
+        uint256 totalAvgNewNumNo = latestCheckpooint.totalNumNo + (_numNo / 2);
 
         // If there's more yes than no, make the yes's more expensive.
         if (totalAvgNewNumYes > totalAvgNewNumNo) {
-            costOfYes = BASE_ENTRY_FEE * (totalNumYes - totalNumNo);
+            costOfYes = BASE_ENTRY_FEE * (latestCheckpooint.totalNumYes - latestCheckpooint.totalNumNo);
             costOfNo = BASE_ENTRY_FEE;
             // If there's more no than yes, make the no's more expensive.
         } else if (totalAvgNewNumNo > totalAvgNewNumYes) {
-            costOfNo = BASE_ENTRY_FEE * (totalNumYes - totalNumNo);
+            costOfNo = BASE_ENTRY_FEE * (latestCheckpooint.totalNumYes - latestCheckpooint.totalNumNo);
             costOfYes = BASE_ENTRY_FEE;
             // Make them the same.
         } else {
@@ -72,23 +83,32 @@ contract BettingContract is VRFConsumerBase {
 
         require(msg.value == entryFee, "Incorrect value sent.");
 
+        BetCheckpoint memory latestCheckpooint = _betCheckpoints[_betCheckpoints.length - 1];
+        BetCheckpoint memory newCheckpoint = BetCheckpoint({
+            timestamp: block.timestamp,
+            totalNumYes: latestCheckpooint.totalNumYes,
+            totalNumNo: latestCheckpooint.totalNumNo
+        });
+
         if (_numYes != 0) {
             if (numYesFrom[msg.sender] == 0) {
                 yesVoters.push(msg.sender);
             }
-            totalNumYes += _numYes;
+            newCheckpoint.totalNumYes += _numYes;
             numYesFrom[msg.sender] += _numYes;
-        }
+        } 
 
         if (_numNo != 0) {
             if (numNoFrom[msg.sender] == 0) {
                 noVoters.push(msg.sender);
             }
-            totalNumNo += _numNo;
+            newCheckpoint.totalNumNo += _numNo;
             numNoFrom[msg.sender] += _numNo;
         }
+        
+        _betCheckpoints.push(newCheckpoint);
 
-        emit BetPlaced(msg.sender, _numYes, _numNo);
+        emit BetPlaced(msg.sender, _numYes, _numNo, newCheckpoint);
     }
 
     /**
@@ -119,8 +139,10 @@ contract BettingContract is VRFConsumerBase {
         address[] storage winners = strikeValue == 2 ? yesVoters : noVoters;
         require(winners.length > 0, "No winners to pay out.");
 
+        BetCheckpoint memory latestCheckpooint = _betCheckpoints[_betCheckpoints.length - 1];
+
         uint256 totalPrize = address(this).balance;
-        uint256 totalNumCorrectBid = strikeValue == 2 ? totalNumYes : totalNumNo;
+        uint256 totalNumCorrectBid = strikeValue == 2 ? latestCheckpooint.totalNumYes : latestCheckpooint.totalNumNo;
         uint256 payoutPerCorrectBid = totalPrize / totalNumCorrectBid;
 
         for (uint256 i = 0; i < winners.length; i++) {
