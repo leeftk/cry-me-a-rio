@@ -13,7 +13,7 @@ contract BettingContractTest is Test {
     uint256 fee = 0.1 * 10 ** 18; // Adjust the fee as necessary
 
     function setUp() public {
-        bettingContract = new BettingContract(vrfCoordinatorMock, linkTokenMock, keyHash, fee);
+        bettingContract = new BettingContract(vrfCoordinatorMock, linkTokenMock, keyHash, fee, block.timestamp + 1 hours);
     }
 
     function testPlaceBet() public {
@@ -22,11 +22,11 @@ contract BettingContractTest is Test {
         vm.deal(bettor, 1 ether); // Provide the bettor with 1 ETH for betting
 
         vm.startPrank(bettor);
-        bettingContract.placeBet{value: 0.01 ether}(true);
+        bettingContract.placeBet{value: 0.00001 ether}({ _numYes: 1, _numNo: 0 });
         vm.stopPrank();
 
         // Verify the bet was placed
-        assertTrue(bettingContract.hasVoted(bettor), "Bettor should have voted.");
+        assertTrue(bettingContract.numYesFrom(bettor) == 1, "Bettor should have voted.");
     }
 
     function testFailPlaceBetAfterDeadline() public {
@@ -37,7 +37,7 @@ contract BettingContractTest is Test {
         vm.deal(bettor, 1 ether); // Provide the bettor with 1 ETH for betting
 
         vm.startPrank(bettor);
-        bettingContract.placeBet{value: 0.01 ether}(true); // This should fail
+        bettingContract.placeBet{value: 0.00001 ether}({ _numYes: 1, _numNo: 0 }); // This should fail
         vm.stopPrank();
     }
 
