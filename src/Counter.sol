@@ -77,7 +77,7 @@ contract BettingContract is VRFConsumerBase {
                 yesVoters.push(msg.sender);
             }
             totalNumYes += _numYes;
-            numYesFrom[msg.sender] += _numNo;
+            numYesFrom[msg.sender] += _numYes;
         }
 
         if (_numNo != 0) {
