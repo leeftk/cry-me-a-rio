@@ -48,8 +48,10 @@ $ anvil
 ### Deploy
 
 ```shell
-$ source .env && forge script Deploy --chain-id 11155111 --rpc-url $RPC_URL --broadcast --verify --etherscan-api-key $ETHERSCAN_API_KEY --interactives 1 --sender $SENDER_ETHEREUM_SEPOLIA -vvv
+$ source .env && forge script Deploy --chain-id $CHAIN_ID  --rpc-url $RPC_URL --broadcast --verify --etherscan-api-key $ETHERSCAN_API_KEY --interactives 1 --sender $SENDER_ETHEREUM_SEPOLIA -vvv
 ```
+
+change 111555111 to the chain id you want to deploy to. 
 
 ### Cast
 
