@@ -7,6 +7,8 @@ struct BetCheckpoint {
     uint256 timestamp;
     uint256 totalNumYes;
     uint256 totalNumNo;
+    uint256 totalYesPaid;
+    uint256 totalNoPaid;
 }
 
 contract BettingContract {
@@ -20,15 +22,15 @@ contract BettingContract {
 
     address[] public yesVoters;
     address[] public noVoters;
-    mapping(address => uint256) public numYesFrom;
-    mapping(address => uint256) public numNoFrom;
+    mapping(address => uint256) public yesPaidBy;
+    mapping(address => uint256) public noPaidBy;
 
     BetCheckpoint[] internal _betCheckpoints;
 
     // Events
     event BetPlaced(address indexed voter, uint256 numYes, uint256 numNo, BetCheckpoint checkpoint);
     event WinnersPaidOut(
-        uint256 result, uint256 totalPrize, uint256 totalNumCorrectBid, uint256 payoutPerCorrectBid
+        uint256 result, uint256 totalPrize, uint256 totalNumCorrectBid 
     );
 
     /**
@@ -47,7 +49,7 @@ contract BettingContract {
     }
 
     function priceOfBet(uint256 _numYes, uint256 _numNo) public view returns (uint256 costOfYes, uint256 costOfNo) {
-        BetCheckpoint memory latestCheckpooint = _betCheckpoints.length == 0 ? BetCheckpoint(0, 0, 0) : _betCheckpoints[_betCheckpoints.length - 1];
+        BetCheckpoint memory latestCheckpooint = _betCheckpoints.length == 0 ? BetCheckpoint(0, 0, 0, 0, 0) : _betCheckpoints[_betCheckpoints.length - 1];
         uint256 totalAvgNewNumYes = latestCheckpooint.totalNumYes + (_numYes / 2);
         uint256 totalAvgNewNumNo = latestCheckpooint.totalNumNo + (_numNo / 2);
 
@@ -57,7 +59,7 @@ contract BettingContract {
             costOfNo = BASE_ENTRY_FEE;
             // If there's more no than yes, make the no's more expensive.
         } else if (totalAvgNewNumNo > totalAvgNewNumYes) {
-            costOfNo = BASE_ENTRY_FEE * (latestCheckpooint.totalNumYes - latestCheckpooint.totalNumNo);
+            costOfNo = BASE_ENTRY_FEE * (latestCheckpooint.totalNumNo - latestCheckpooint.totalNumYes);
             costOfYes = BASE_ENTRY_FEE;
             // Make them the same.
         } else {
@@ -83,27 +85,31 @@ contract BettingContract {
 
         require(msg.value == entryFee, "Incorrect value sent.");
 
-        BetCheckpoint memory latestCheckpooint = _betCheckpoints.length == 0 ? BetCheckpoint(0, 0, 0) : _betCheckpoints[_betCheckpoints.length - 1];
+        BetCheckpoint memory latestCheckpooint = _betCheckpoints.length == 0 ? BetCheckpoint(0, 0, 0, 0, 0) : _betCheckpoints[_betCheckpoints.length - 1];
         BetCheckpoint memory newCheckpoint = BetCheckpoint({
             timestamp: block.timestamp,
             totalNumYes: latestCheckpooint.totalNumYes,
-            totalNumNo: latestCheckpooint.totalNumNo
+            totalNumNo: latestCheckpooint.totalNumNo,
+            totalYesPaid: latestCheckpooint.totalYesPaid,
+            totalNoPaid: latestCheckpooint.totalNoPaid
         });
 
         if (_numYes != 0) {
-            if (numYesFrom[msg.sender] == 0) {
+            if (yesPaidBy[msg.sender] == 0) {
                 yesVoters.push(msg.sender);
             }
             newCheckpoint.totalNumYes += _numYes;
-            numYesFrom[msg.sender] += _numYes;
+            newCheckpoint.totalYesPaid += (_numYes * costOfYes);
+            yesPaidBy[msg.sender] += _numYes * costOfYes;
         } 
 
         if (_numNo != 0) {
-            if (numNoFrom[msg.sender] == 0) {
+            if (noPaidBy[msg.sender] == 0) {
                 noVoters.push(msg.sender);
             }
             newCheckpoint.totalNumNo += _numNo;
-            numNoFrom[msg.sender] += _numNo;
+            newCheckpoint.totalNoPaid += (_numNo * costOfNo);
+            noPaidBy[msg.sender] += _numNo * costOfNo;
         }
         
         _betCheckpoints.push(newCheckpoint);
@@ -133,15 +139,20 @@ contract BettingContract {
         BetCheckpoint memory latestCheckpooint = _betCheckpoints[_betCheckpoints.length - 1];
 
         uint256 totalPrize = address(this).balance;
-        uint256 totalNumCorrectBid = result == 2 ? latestCheckpooint.totalNumYes : latestCheckpooint.totalNumNo;
-        uint256 payoutPerCorrectBid = totalPrize / totalNumCorrectBid;
+        uint256 totalNumCorrectPaid = result == 2 ? latestCheckpooint.totalYesPaid : latestCheckpooint.totalNoPaid;
 
         for (uint256 i = 0; i < winners.length; i++) {
-            uint256 numCorrectBids = result == 2 ? numYesFrom[winners[i]] : numNoFrom[winners[i]];
-            payable(winners[i]).transfer(payoutPerCorrectBid * numCorrectBids);
+            uint256 correctPaid = result == 2 ? yesPaidBy[winners[i]] : noPaidBy[winners[i]];
+            uint256 payout = totalPrize * correctPaid / totalNumCorrectPaid;
+
+            if (address(this).balance >= payout) {
+                payable(winners[i]).transfer(payout);
+            } else {
+                payable(winners[i]).transfer(address(this).balance);
+            }
         }
 
-        emit WinnersPaidOut(result, totalPrize, totalNumCorrectBid, payoutPerCorrectBid);
+        emit WinnersPaidOut(result, totalPrize, totalNumCorrectPaid);
         // Consider resetting the contract state here if you want to allow for another round of betting
     }
 

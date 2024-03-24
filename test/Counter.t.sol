@@ -23,7 +23,7 @@ contract BettingContractTest is Test {
         vm.stopPrank();
 
         // Verify the bet was placed
-        assertTrue(bettingContract.numYesFrom(bettor) == 1, "Bettor should have voted.");
+        assertTrue(bettingContract.yesPaidBy(bettor) == 0.00001 ether, "Bettor should have voted.");
     }
 
     function testFailPlaceBetAfterDeadline() public {
