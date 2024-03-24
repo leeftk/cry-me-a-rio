@@ -40,7 +40,7 @@ contract AccuWeatherData is ChainlinkClient {
         req.add("path", "0.PrecipitationSummary.Past24Hours.Metric.Value");
 
         
-        int256 timesAmount = 100;
+        int256 timesAmount = 1000;
         req.addInt("times", timesAmount);
 
        return sendChainlinkRequest(req, fee);
