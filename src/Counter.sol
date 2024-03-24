@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@chainlink/contracts/v0.8/VRFConsumerBase.sol";
 
+import {AccuWeatherData} from "./AccuWeatherData.sol";
 
 struct BetCheckpoint {
     uint256 timestamp;
@@ -10,11 +11,14 @@ struct BetCheckpoint {
     uint256 totalNumNo;
 }
 
-contract BettingContract is VRFConsumerBase {
+contract BettingContract {
     uint256 public constant BASE_ENTRY_FEE = 0.00001 ether;
     uint256 public strikeTimestamp;
+    uint256 public strikeTarget;
     // 1 = no, 2 = yes.
-    uint256 public strikeValue;
+    uint256 public result;
+    
+    AccuWeatherData public immutable dataSource;
 
     address[] public yesVoters;
     address[] public noVoters;
@@ -22,24 +26,21 @@ contract BettingContract is VRFConsumerBase {
     mapping(address => uint256) public numNoFrom;
 
     BetCheckpoint[] internal _betCheckpoints;
-    bytes32 internal keyHash;
-    uint256 internal fee;
 
     // Events
     event BetPlaced(address indexed voter, uint256 numYes, uint256 numNo, BetCheckpoint checkpoint);
     event WinnersPaidOut(
-        uint256 strikeValue, uint256 totalPrize, uint256 totalNumCorrectBid, uint256 payoutPerCorrectBid
+        uint256 result, uint256 totalPrize, uint256 totalNumCorrectBid, uint256 payoutPerCorrectBid
     );
 
     /**
      * Constructor
      */
-    constructor(address _vrfCoordinator, address _linkToken, bytes32 _keyHash, uint256 _fee, uint256 _strikeTimestamp)
-        VRFConsumerBase(_vrfCoordinator, _linkToken)
+    constructor(address _dataSource, uint256 _fee, uint256 _strikeTimestamp, uint256 _strikeTarget)
     {
-        keyHash = _keyHash;
-        fee = _fee;
+        dataSource = _dataSource;
         strikeTimestamp = _strikeTimestamp;
+        strikeTarget = _strikeTarget;
     }
 
     function betCheckpoints() external view returns (BetCheckpoint[] memory) {
@@ -115,18 +116,9 @@ contract BettingContract is VRFConsumerBase {
      * Function to request randomness
      */
     function requestResult() external {
+        require(result == 0, "Result already settled.");
         require(block.timestamp > strikeTimestamp, "Betting period has not expired.");
-        require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK - fill contract with faucet");
-        requestRandomness(keyHash, fee);
-    }
-
-    /**
-     * Callback function used by VRF Coordinator
-     */
-    function fulfillRandomness(bytes32, /* requestId */ uint256 randomness) internal override {
-        require(strikeValue == 0, "Result already declared.");
-        // 1 or 2.
-        strikeValue = (randomness % 2) + 1;
+        result = dataSource.precipitation() > strikeTarget ? 2 : 1;
         payOutWinners();
     }
 
@@ -134,23 +126,23 @@ contract BettingContract is VRFConsumerBase {
      * Function to distribute the Ether to winners
      */
     function payOutWinners() private {
-        require(strikeValue == 1 || strikeValue == 2, "Result has not been declared yet.");
+        require(result == 1 || result == 2, "Result has not been declared yet.");
 
-        address[] storage winners = strikeValue == 2 ? yesVoters : noVoters;
+        address[] storage winners = result == 2 ? yesVoters : noVoters;
         require(winners.length > 0, "No winners to pay out.");
 
         BetCheckpoint memory latestCheckpooint = _betCheckpoints[_betCheckpoints.length - 1];
 
         uint256 totalPrize = address(this).balance;
-        uint256 totalNumCorrectBid = strikeValue == 2 ? latestCheckpooint.totalNumYes : latestCheckpooint.totalNumNo;
+        uint256 totalNumCorrectBid = result == 2 ? latestCheckpooint.totalNumYes : latestCheckpooint.totalNumNo;
         uint256 payoutPerCorrectBid = totalPrize / totalNumCorrectBid;
 
         for (uint256 i = 0; i < winners.length; i++) {
-            uint256 numCorrectBids = strikeValue == 2 ? numYesFrom[winners[i]] : numNoFrom[winners[i]];
+            uint256 numCorrectBids = result == 2 ? numYesFrom[winners[i]] : numNoFrom[winners[i]];
             payable(winners[i]).transfer(payoutPerCorrectBid * numCorrectBids);
         }
 
-        emit WinnersPaidOut(strikeValue, totalPrize, totalNumCorrectBid, payoutPerCorrectBid);
+        emit WinnersPaidOut(result, totalPrize, totalNumCorrectBid, payoutPerCorrectBid);
         // Consider resetting the contract state here if you want to allow for another round of betting
     }
 
