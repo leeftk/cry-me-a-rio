@@ -8,7 +8,7 @@ libs = ["lib"]
 
 [profile.test]
 
-rpcUrl = "https://mainnet.infura.io/v3/7214c971517a4856a1ea3c32a5ba8bd0"
+rpcUrl = "https://sepolia.infura.io/v3/7214c971517a4856a1ea3c32a5ba8bd0"
 forkBlockNumber = "latest" # Or specify a specific block number
 
 
