@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {BettingContract} from "../src/Counter.sol";
+import {BettingContract} from "../src/BettingContract.sol";
 import {AccuWeatherData} from "../src/AccuWeatherData.sol";
 
 contract BettingContractTest is Test {
