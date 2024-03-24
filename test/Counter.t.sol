@@ -10,7 +10,7 @@ contract BettingContractTest is Test {
 
     function setUp() public {
         bettingContract =
-            new BettingContract(new AccuWeatherData(), block.timestamp + 1 hours, 300); // 3mm
+            new BettingContract(new AccuWeatherData(), block.timestamp + 1 hours, 300, address(0x1)); // 3mm
     }
 
     function testPlaceBet() public {

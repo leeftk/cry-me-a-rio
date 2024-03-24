@@ -12,13 +12,15 @@ struct BetCheckpoint {
 }
 
 contract BettingContract {
+    uint256 public constant FEE = 10;
     uint256 public constant BASE_ENTRY_FEE = 0.00001 ether;
     uint256 public strikeTimestamp;
     uint256 public strikeTarget;
     // 1 = no, 2 = yes.
     uint256 public result;
-    
+     
     AccuWeatherData public immutable dataSource;
+    address public immutable feeBeneficiary;
 
     address[] public yesVoters;
     address[] public noVoters;
@@ -30,18 +32,19 @@ contract BettingContract {
     // Events
     event BetPlaced(address indexed voter, uint256 numYes, uint256 numNo, BetCheckpoint checkpoint);
     event WinnersPaidOut(
-        uint256 result, uint256 totalPrize, uint256 totalNumCorrectBid 
+        uint256 result, uint256 totalPrize, uint256 fee, uint256 totalNumCorrectBid 
     );
 
     /**
      * Constructor
      * for _strikeTarget, 3 mm == 300.
      */
-    constructor(AccuWeatherData _dataSource, uint256 _strikeTimestamp, uint256 _strikeTarget)
+    constructor(AccuWeatherData _dataSource, uint256 _strikeTimestamp, uint256 _strikeTarget, address _feeBeneficiary)
     {
         dataSource = _dataSource;
         strikeTimestamp = _strikeTimestamp;
         strikeTarget = _strikeTarget;
+        feeBeneficiary = _feeBeneficiary;
     }
 
     function betCheckpoints() external view returns (BetCheckpoint[] memory) {
@@ -139,11 +142,12 @@ contract BettingContract {
         BetCheckpoint memory latestCheckpooint = _betCheckpoints[_betCheckpoints.length - 1];
 
         uint256 totalPrize = address(this).balance;
+        uint256 fee = totalPrize * FEE / 100;
         uint256 totalNumCorrectPaid = result == 2 ? latestCheckpooint.totalYesPaid : latestCheckpooint.totalNoPaid;
 
         for (uint256 i = 0; i < winners.length; i++) {
             uint256 correctPaid = result == 2 ? yesPaidBy[winners[i]] : noPaidBy[winners[i]];
-            uint256 payout = totalPrize * correctPaid / totalNumCorrectPaid;
+            uint256 payout = (totalPrize - fee) * correctPaid / totalNumCorrectPaid;
 
             if (address(this).balance >= payout) {
                 payable(winners[i]).transfer(payout);
@@ -152,7 +156,9 @@ contract BettingContract {
             }
         }
 
-        emit WinnersPaidOut(result, totalPrize, totalNumCorrectPaid);
+        payable(feeBeneficiary).transfer(fee);
+
+        emit WinnersPaidOut(result, totalPrize, fee, totalNumCorrectPaid);
         // Consider resetting the contract state here if you want to allow for another round of betting
     }
 
