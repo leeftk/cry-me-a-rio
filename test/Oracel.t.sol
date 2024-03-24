@@ -11,7 +11,7 @@ contract AccuWeatherDataTest is Test{
     // Vm vm = Vm(HEVM_ADDRESS);
     AccuWeatherData accuWeatherData;
     MockChainlinkOracle mockOracle;
-    IERC20 link = IERC20(0x514910771AF9Ca656af840dff83E8264EcF986CA); // LINK token contract on Ethereum mainnet
+    IERC20 link = IERC20(0x779877A7B0D9E8603169DdbD7836e478b4624789); // LINK token contract on Ethereum mainnet
     address linkWhale = 0xBc10f2E862ED4502144c7d632a3459F49DFCDB5e;
 
     function setUp() public {

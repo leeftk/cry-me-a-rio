@@ -7,9 +7,6 @@ import {AccuWeatherData} from "../src/AccuWeatherData.sol";
 
 contract BettingContractTest is Test {
     BettingContract bettingContract;
-    address linkTokenMock = address(0x456); // Use a mock address for the LINK token
-    bytes32 keyHash = 0x0; // Use an appropriate key hash
-    uint256 fee = 0.1 * 10 ** 18; // Adjust the fee as necessary
 
     function setUp() public {
         bettingContract =

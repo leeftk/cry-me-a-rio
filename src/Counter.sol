@@ -49,7 +49,7 @@ contract BettingContract {
     }
 
     function priceOfBet(uint256 _numYes, uint256 _numNo) public view returns (uint256 costOfYes, uint256 costOfNo) {
-        BetCheckpoint memory latestCheckpooint = _betCheckpoints[_betCheckpoints.length - 1];
+        BetCheckpoint memory latestCheckpooint = _betCheckpoints.length == 0 ? BetCheckpoint(0, 0, 0) : _betCheckpoints[_betCheckpoints.length - 1];
         uint256 totalAvgNewNumYes = latestCheckpooint.totalNumYes + (_numYes / 2);
         uint256 totalAvgNewNumNo = latestCheckpooint.totalNumNo + (_numNo / 2);
 
@@ -85,7 +85,7 @@ contract BettingContract {
 
         require(msg.value == entryFee, "Incorrect value sent.");
 
-        BetCheckpoint memory latestCheckpooint = _betCheckpoints[_betCheckpoints.length - 1];
+        BetCheckpoint memory latestCheckpooint = _betCheckpoints.length == 0 ? BetCheckpoint(0, 0, 0) : _betCheckpoints[_betCheckpoints.length - 1];
         BetCheckpoint memory newCheckpoint = BetCheckpoint({
             timestamp: block.timestamp,
             totalNumYes: latestCheckpooint.totalNumYes,
