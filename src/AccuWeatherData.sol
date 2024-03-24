@@ -33,15 +33,16 @@ contract AccuWeatherData is ChainlinkClient {
         Chainlink.Request memory req = buildChainlinkRequest(jobId, address(this), this.fulfill.selector);
 
         // Assuming the API endpoint and the response format, adjust as necessary
-        string memory url = "http://dataservice.accuweather.com/currentconditions/v1/455825?apikey=kabeZ8hsdQdAzgaihRYXu18GYDTjMScU&details=true";
+        string memory url = "http://dataservice.accuweather.com/currentconditions/v1/45449?apikey=kabeZ8hsdQdAzgaihRYXu18GYDTjMScU&details=true";
         console.log("1");
         req.add("get", url);
         // Adjust the JSON path to match the structure of the AccuWeather response
-        req.add("path", "0.PrecipitationSummary.Precipitation.mm");
+        req.add("path", "0.PrecipitationSummary.Past24Hours.Metric.Value");
+
         
-        int256 timesAmount = 10 ** 18;
+        int256 timesAmount = 100;
         req.addInt("times", timesAmount);
-             console.log("2");
+
        return sendChainlinkRequest(req, fee);
    
          
