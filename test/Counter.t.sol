@@ -3,17 +3,17 @@ pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
 import {BettingContract} from "../src/Counter.sol";
+import {AccuWeatherData} from "../src/AccuWeatherData.sol";
 
 contract BettingContractTest is Test {
     BettingContract bettingContract;
-    address vrfCoordinatorMock = address(0x123); // Use a mock address for the VRF Coordinator
     address linkTokenMock = address(0x456); // Use a mock address for the LINK token
     bytes32 keyHash = 0x0; // Use an appropriate key hash
     uint256 fee = 0.1 * 10 ** 18; // Adjust the fee as necessary
 
     function setUp() public {
         bettingContract =
-            new BettingContract(vrfCoordinatorMock, linkTokenMock, keyHash, fee, block.timestamp + 1 hours);
+            new BettingContract(new AccuWeatherData(), block.timestamp + 1 hours, 300); // 3mm
     }
 
     function testPlaceBet() public {

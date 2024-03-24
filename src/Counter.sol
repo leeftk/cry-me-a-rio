@@ -35,8 +35,9 @@ contract BettingContract {
 
     /**
      * Constructor
+     * for _strikeTarget, 3 mm == 300.
      */
-    constructor(address _dataSource, uint256 _fee, uint256 _strikeTimestamp, uint256 _strikeTarget)
+    constructor(AccuWeatherData _dataSource, uint256 _strikeTimestamp, uint256 _strikeTarget)
     {
         dataSource = _dataSource;
         strikeTimestamp = _strikeTimestamp;
