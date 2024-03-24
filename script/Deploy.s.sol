@@ -8,7 +8,7 @@ import {AccuWeatherData} from "src/AccuWeatherData.sol";
 contract Deploy is Script {
     function run() public {
         vm.startBroadcast();
-        new BettingContract(new AccuWeatherData(), block.timestamp + 3 days, 300, 0x9C382eEC918e14F4943912F07661D1de286c79ad); // 3mm
+        new BettingContract(new AccuWeatherData(), block.timestamp + 5 hours, 300, 0x9C382eEC918e14F4943912F07661D1de286c79ad); // 3mm
         vm.stopBroadcast();
     }
 }
