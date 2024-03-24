@@ -34,6 +34,7 @@ contract BettingContractTest is Test {
         vm.deal(bettor, 1 ether); // Provide the bettor with 1 ETH for betting
 
         vm.startPrank(bettor);
+        vm.expectRevert(abi.encodeWithSignature("Betting period has expired."));
         bettingContract.placeBet{value: 0.00001 ether}({_numYes: 1, _numNo: 0}); // This should fail
         vm.stopPrank();
     }

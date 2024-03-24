@@ -3,7 +3,6 @@ pragma solidity ^0.8.7;
 
 import "forge-std/Test.sol";
 import "../src/AccuWeatherData.sol";
-import "../src/Mocks/MockChainlinkOracle.sol";// Adjust the path to your contract
 import "forge-std/console.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
@@ -12,12 +11,10 @@ import "@chainlink/contracts/v0.8/shared/interfaces/LinkTokenInterface.sol";
 
 contract OracleTest is Test {
     AccuWeatherData accuWeatherData;
-    MockChainlinkOracle mockOracle;
     address linky = 0x779877A7B0D9E8603169DdbD7836e478b4624789; // LINK token contract on Ethereum mainnet
     address linkWhale = 0xBc10f2E862ED4502144c7d632a3459F49DFCDB5e;
 
     function setUp() public {
-            mockOracle = new MockChainlinkOracle();
         
         accuWeatherData = new AccuWeatherData();
              // Impersonate the LINK whale
