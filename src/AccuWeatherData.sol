@@ -3,8 +3,6 @@ pragma solidity ^0.8.7;
 import "@chainlink/contracts/v0.8/ChainlinkClient.sol";
 import "forge-std/console.sol";
 
-import "@chainlink/contracts/v0.8/ChainlinkClient.sol";
-
 contract AccuWeatherData is ChainlinkClient {
     event Request(bytes32 indexed requestId, uint256 indexed precipitation);
 
